@@ -6,9 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -20,22 +20,31 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     private static final int TYPE_INACTIVE = 0;
     private static final int TYPE_ACTIVE = 1;
 
-    private static final int ITEM_COUNT = 50;
-    private ArrayList<Note> notes;
+    private static final int ITEM_COUNT = 20;
+    private LinkedList<Note> notes;
 
     private ViewHolder.ClickListener clickListener;
 
+    //private SQLiteDatabase database;
+    //private SQLiteHelper dbHelper;
+    //private String[] allColumns = { SQLiteHelper.COLUMN_ID, SQLiteHelper.COLUMN_TITLE, SQLiteHelper.COLUMN_NOTE};
+
     public Adapter(ViewHolder.ClickListener clickListener) {
         super();
-
         this.clickListener = clickListener;
+
+        notes = new LinkedList<>();
 
         Random random = new Random();
 
-        notes = new ArrayList<>();
         for (int i = 0; i < ITEM_COUNT; i++) {
             notes.add(new Note("Notatka " + (i + 1), "Ta notatka" , random.nextBoolean()));
         }
+
+    }
+
+    public void addNote(String title, String description, boolean important) {
+        notes.addFirst(new Note(title, description, important));
     }
 
     public void removeNote(int position) {
@@ -95,14 +104,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         final Note note = notes.get(position);
 
         holder.title.setText(note.getTitle());
-        holder.subtitle.setText(note.getSubtitle() + (note.isActive() ? " jest ważna!" : " nie jest ważna"));
-
-        /*final ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-        if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
-            StaggeredGridLayoutManager.LayoutParams sglp = (StaggeredGridLayoutManager.LayoutParams) lp;
-            sglp.setFullSpan(note.isActive());
-            holder.itemView.setLayoutParams(sglp);
-        }*/
+        holder.subtitle.setText(note.getSubtitle());
 
         holder.selectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
     }
@@ -146,7 +148,6 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
         @Override
         public void onClick(View v) {
-            //Log.d(TAG, "Kliknales na pozycji " + getPosition());
             if (listener != null) {
                 listener.onItemClicked(getPosition());
             }
@@ -154,7 +155,6 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
         @Override
         public boolean onLongClick(View v) {
-            //Log.d(TAG, "Dlugo kliknales na pozycji " + getPosition());
             if (listener != null) {
                 return listener.onItemLongClicked(getPosition());
             }

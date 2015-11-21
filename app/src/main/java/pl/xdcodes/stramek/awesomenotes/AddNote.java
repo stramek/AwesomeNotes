@@ -1,7 +1,10 @@
 package pl.xdcodes.stramek.awesomenotes;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
@@ -27,7 +30,15 @@ public class AddNote extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                if(title.length() > 0) {
+                    Intent returnIntent = new Intent();
+                    returnIntent.putExtra("title", title.getText().toString());
+                    returnIntent.putExtra("note", note.getText().toString());
+                    setResult(Activity.RESULT_OK, returnIntent);
+                    finish();
+                } else {
+                    Snackbar.make(v, "Aby dodać notatkę, tutuł nie może być pusty!", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -37,4 +48,5 @@ public class AddNote extends AppCompatActivity {
         super.onPause();
         //overridePendingTransition(0, 0);
     }
+
 }

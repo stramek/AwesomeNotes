@@ -1,10 +1,12 @@
 package pl.xdcodes.stramek.awesomenotes;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -26,6 +28,7 @@ public class MainActivity extends AppCompatActivity
     private Adapter adapter;
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,30 +40,27 @@ public class MainActivity extends AppCompatActivity
 
         adapter = new Adapter(this);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setAdapter(adapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+
         int column;
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             column = 3;
         } else {
             column = 2;
         }
-        //recyclerView.setLayoutManager(new GridLayoutManager(this, column, LinearLayoutManager.VERTICAL, false));
+
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(column, LinearLayoutManager.VERTICAL));
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //ParseObject testObject = new ParseObject("TestObject");
-                //testObject.put("foo", "bar");
-                //testObject.saveInBackground();
-
                 Intent intent= new Intent(MainActivity.this, AddNote.class);
                 intent.setAction(Intent.ACTION_VIEW);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                startActivity(intent);
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -72,6 +72,31 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+
+        if (requestCode == 1) {
+
+            String resultTitle = "";
+            String resultNote = "";
+
+            if(resultCode == Activity.RESULT_OK){
+                resultTitle = data.getStringExtra("title");
+                resultNote = data.getStringExtra("note");
+                adapter.addNote(resultTitle, resultNote, false);
+                adapter.notifyItemInserted(0);
+                recyclerView.smoothScrollToPosition(0);
+                Snackbar.make(recyclerView, "Notatka została dodana.", Snackbar.LENGTH_LONG).setAction("Cofnij", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        adapter.removeNote(0);
+                    }
+                }).show();
+            }
+        }
     }
 
     @Override

@@ -1,17 +1,29 @@
 package pl.xdcodes.stramek.awesomenotes;
 
-/**
- * Created by Stramek on 16.11.2015.
- */
 public class Note {
+
+    private long id;
     private String title;
     private String subtitle;
     private boolean active;
 
-    Note(String title, String subtitle, boolean active) {
+    Note() {
+        active = false;
+    }
+
+    Note(String title, String subtitle, boolean active, long id) {
+        this.id = id;
         this.title = title;
         this.subtitle = subtitle;
         this.active = active;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getTitle() {

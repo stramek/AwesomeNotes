@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
@@ -25,26 +24,24 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
     private ViewHolder.ClickListener clickListener;
 
-    //private SQLiteDatabase database;
-    //private SQLiteHelper dbHelper;
-    //private String[] allColumns = { SQLiteHelper.COLUMN_ID, SQLiteHelper.COLUMN_TITLE, SQLiteHelper.COLUMN_NOTE};
-
-    public Adapter(ViewHolder.ClickListener clickListener) {
+    public Adapter(ViewHolder.ClickListener clickListener, List<Note> list) {
         super();
+
         this.clickListener = clickListener;
 
         notes = new LinkedList<>();
 
-        Random random = new Random();
-
-        for (int i = 0; i < ITEM_COUNT; i++) {
-            notes.add(new Note("Notatka " + (i + 1), "Ta notatka" , random.nextBoolean()));
+        for(Note n : list) {
+            notes.addFirst(new Note(n.getTitle(), n.getSubtitle(), false, n.getId()));
         }
-
     }
 
-    public void addNote(String title, String description, boolean important) {
-        notes.addFirst(new Note(title, description, important));
+    public LinkedList getNotes() {
+        return notes;
+    }
+
+    public void addNote(Note note) {
+        notes.addFirst(note);
     }
 
     public void removeNote(int position) {

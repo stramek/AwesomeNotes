@@ -6,7 +6,6 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -17,10 +16,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, Adapter.ViewHolder.ClickListener {
@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity
     private ActionMode actionMode;
     private RecyclerView recyclerView;
 
+    private NotesDataSource dataSource;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +40,11 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        adapter = new Adapter(this);
+        dataSource = new NotesDataSource(this);
+        dataSource.open();
+
+        List<Note> values = dataSource.getAllNotes();
+        adapter = new Adapter(this, values);
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setAdapter(adapter);
@@ -75,26 +81,44 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        dataSource.open();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        dataSource.close();
+        super.onPause();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 
         if (requestCode == 1) {
-
+            dataSource.open();
             String resultTitle = "";
             String resultNote = "";
 
             if(resultCode == Activity.RESULT_OK){
+
+                Note n = null;
+
                 resultTitle = data.getStringExtra("title");
                 resultNote = data.getStringExtra("note");
-                adapter.addNote(resultTitle, resultNote, false);
+
+                n = dataSource.createNote(resultTitle, resultNote);
+                adapter.addNote(n);
+
                 adapter.notifyItemInserted(0);
                 recyclerView.smoothScrollToPosition(0);
-                Snackbar.make(recyclerView, "Notatka została dodana.", Snackbar.LENGTH_LONG).setAction("Cofnij", new View.OnClickListener() {
+                /*Snackbar.make(recyclerView, "Notatka została dodana.", Snackbar.LENGTH_LONG).setAction("Cofnij", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         adapter.removeNote(0);
                     }
-                }).show();
+                }).show();*/
             }
         }
     }
@@ -155,8 +179,6 @@ public class MainActivity extends AppCompatActivity
     public void onItemClicked(int position) {
         if (actionMode != null) {
             toggleSelection(position);
-        } else {
-            Log.d("asd", "Kliknąłeś: " + (position + 1));
         }
     }
 
@@ -201,7 +223,20 @@ public class MainActivity extends AppCompatActivity
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_delete:
-                    adapter.removeNotes(adapter.getSelectedItems());
+
+                    List<Integer> items = adapter.getSelectedItems();
+
+                    // TODO Znaleźć lepszy sposób na usuwanie kliku notek...
+                    List<Note> list = adapter.getNotes();
+                    int i = 0;
+                    for (Note n : list) {
+                        if (items.contains(i)) {
+                            dataSource.deleteNote(n);
+                        }
+                        i++;
+                    }
+                    adapter.removeNotes(items);
+
                     mode.finish();
                     return true;
                 default:

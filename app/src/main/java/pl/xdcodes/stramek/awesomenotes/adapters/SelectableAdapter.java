@@ -1,4 +1,4 @@
-package pl.xdcodes.stramek.awesomenotes;
+package pl.xdcodes.stramek.awesomenotes.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;

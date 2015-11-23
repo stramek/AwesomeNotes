@@ -5,4 +5,8 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <string name="empty">Uzupełnij pola...</string>
+    <string name="no_title">Uzupełnij tutuł...</string>
+    <string name="no_noteText">Uzupełnij notatkę...</string>
 </resources>

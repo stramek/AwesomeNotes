@@ -22,6 +22,10 @@ import android.view.View;
 
 import java.util.List;
 
+import pl.xdcodes.stramek.awesomenotes.adapters.Adapter;
+import pl.xdcodes.stramek.awesomenotes.database.NotesDataSource;
+import pl.xdcodes.stramek.awesomenotes.notes.Note;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, Adapter.ViewHolder.ClickListener {
 
@@ -98,12 +102,11 @@ public class MainActivity extends AppCompatActivity
 
         if (requestCode == 1) {
             dataSource.open();
-            String resultTitle = "";
-            String resultNote = "";
+            String resultTitle;
+            String resultNote;
 
             if(resultCode == Activity.RESULT_OK){
-
-                Note n = null;
+                Note n;
 
                 resultTitle = data.getStringExtra("title");
                 resultNote = data.getStringExtra("note");
@@ -113,12 +116,6 @@ public class MainActivity extends AppCompatActivity
 
                 adapter.notifyItemInserted(0);
                 recyclerView.smoothScrollToPosition(0);
-                /*Snackbar.make(recyclerView, "Notatka została dodana.", Snackbar.LENGTH_LONG).setAction("Cofnij", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        adapter.removeNote(0);
-                    }
-                }).show();*/
             }
         }
     }
@@ -143,9 +140,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        if (id == R.id.action_settings) return true;
 
         return super.onOptionsItemSelected(item);
     }

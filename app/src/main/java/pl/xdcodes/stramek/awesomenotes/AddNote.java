@@ -14,7 +14,7 @@ public class AddNote extends AppCompatActivity {
 
     private FloatingActionButton fab;
     private EditText title;
-    private EditText note;
+    private EditText noteText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +22,7 @@ public class AddNote extends AppCompatActivity {
         setContentView(R.layout.add_new_note);
 
         title = (EditText) findViewById(R.id.title);
-        note = (EditText) findViewById(R.id.note);
+        noteText = (EditText) findViewById(R.id.note);
         title.requestFocus();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
@@ -30,14 +30,20 @@ public class AddNote extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(title.length() > 0) {
+                if(title.length() == 0 || noteText.length() == 0) {
+                    if(title.length() == 0 && noteText.length() == 0) {
+                        Snackbar.make(v, getString(R.string.empty), Snackbar.LENGTH_LONG).show();
+                    } else if (title.length() == 0) {
+                        Snackbar.make(v, getString(R.string.no_title), Snackbar.LENGTH_LONG).show();
+                    } else {
+                        Snackbar.make(v, getString(R.string.no_noteText), Snackbar.LENGTH_LONG).show();
+                    }
+                } else {
                     Intent returnIntent = new Intent();
                     returnIntent.putExtra("title", title.getText().toString());
-                    returnIntent.putExtra("note", note.getText().toString());
+                    returnIntent.putExtra("note", noteText.getText().toString());
                     setResult(Activity.RESULT_OK, returnIntent);
                     finish();
-                } else {
-                    Snackbar.make(v, "Aby dodać notatkę, tutuł nie może być pusty!", Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -46,7 +52,6 @@ public class AddNote extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        //overridePendingTransition(0, 0);
     }
 
 }

@@ -1,4 +1,4 @@
-package pl.xdcodes.stramek.awesomenotes;
+package pl.xdcodes.stramek.awesomenotes.parse;
 
 import android.app.Application;
 
@@ -11,6 +11,7 @@ public class ParseApplication extends Application {
         super.onCreate();
 
         Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "y1lH6C1d4exKCixVIi2mLDP2aQJeX2PscKySEEB7", "LUWG18j8O3Wwvtk6BKDi1RsIGAyatkPOdrnmI9LB");
+        Parse.initialize(this, "y1lH6C1d4exKCixVIi2mLDP2aQJeX2PscKySEEB7",
+                "LUWG18j8O3Wwvtk6BKDi1RsIGAyatkPOdrnmI9LB");
     }
 }

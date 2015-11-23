@@ -1,4 +1,4 @@
-package pl.xdcodes.stramek.awesomenotes;
+package pl.xdcodes.stramek.awesomenotes.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,15 +11,17 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import pl.xdcodes.stramek.awesomenotes.R;
+import pl.xdcodes.stramek.awesomenotes.notes.Note;
+
 public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
     @SuppressWarnings("unused")
     private static final String TAG = Adapter.class.getSimpleName();
 
-    private static final int TYPE_INACTIVE = 0;
-    private static final int TYPE_ACTIVE = 1;
+    private static final int NOT_IMPORTANT = 0;
+    private static final int IMPORTANT = 1;
 
-    private static final int ITEM_COUNT = 20;
     private LinkedList<Note> notes;
 
     private ViewHolder.ClickListener clickListener;
@@ -32,7 +34,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         notes = new LinkedList<>();
 
         for(Note n : list) {
-            notes.addFirst(new Note(n.getTitle(), n.getSubtitle(), false, n.getId()));
+            notes.addFirst(new Note(n.getId(), n.getTitle(), n.getNoteText(), false));
         }
     }
 
@@ -90,7 +92,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final int layout = viewType == TYPE_INACTIVE ? R.layout.note : R.layout.note_active;
+        final int layout = viewType == NOT_IMPORTANT ? R.layout.note : R.layout.note_active;
 
         View v = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
         return new ViewHolder(v, clickListener);
@@ -101,7 +103,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         final Note note = notes.get(position);
 
         holder.title.setText(note.getTitle());
-        holder.subtitle.setText(note.getSubtitle());
+        holder.subtitle.setText(note.getNoteText());
 
         holder.selectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
     }
@@ -115,9 +117,8 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     public int getItemViewType(int position) {
         final Note note = notes.get(position);
 
-        return note.isActive() ? TYPE_ACTIVE : TYPE_INACTIVE;
+        return note.isImportant() ? IMPORTANT : NOT_IMPORTANT;
     }
-
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
@@ -146,14 +147,14 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         @Override
         public void onClick(View v) {
             if (listener != null) {
-                listener.onItemClicked(getPosition());
+                listener.onItemClicked(getAdapterPosition());
             }
         }
 
         @Override
         public boolean onLongClick(View v) {
             if (listener != null) {
-                return listener.onItemLongClicked(getPosition());
+                return listener.onItemLongClicked(getAdapterPosition());
             }
             return false;
         }

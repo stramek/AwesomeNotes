@@ -9,4 +9,18 @@
     <string name="empty">Uzupełnij pola...</string>
     <string name="no_title">Uzupełnij tutuł...</string>
     <string name="no_noteText">Uzupełnij notatkę...</string>
+
+    <string name="no_internet">Brak połączenia z internetem!</string>
+
+    <string name="parse_logged_in">Zalogowano</string>
+    <string name="parse_created_account">Konto utworzone z powodzeniem</string>
+    <string name="parse_refresh">Odświerzam...</string>
+
+    <string name="parse_dialog_title">Konfiguracja konta</string>
+    <string name="parse_log_in">Zaloguj</string>
+    <string name="parse_cancel">Wyjdź</string>
+    <string name="parse_create">Załóż</string>
+
+
+
 </resources>

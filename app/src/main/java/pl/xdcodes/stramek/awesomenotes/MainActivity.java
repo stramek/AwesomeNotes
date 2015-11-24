@@ -1,14 +1,16 @@
 package pl.xdcodes.stramek.awesomenotes;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -20,21 +22,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.parse.LogInCallback;
+import com.parse.ParseException;
+import com.parse.ParseUser;
+
 import java.util.List;
 
 import pl.xdcodes.stramek.awesomenotes.adapters.Adapter;
 import pl.xdcodes.stramek.awesomenotes.database.NotesDataSource;
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
+import pl.xdcodes.stramek.awesomenotes.parse.ParseDialog;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, Adapter.ViewHolder.ClickListener {
+        implements Adapter.ViewHolder.ClickListener,
+                   SwipeRefreshLayout.OnRefreshListener,
+                   ParseDialog.StatusDialogListener {
 
     private Adapter adapter;
-    private ActionModeCallback actionModeCallback = new ActionModeCallback();
+    private ActionModeCallback actionModeCallback;
     private ActionMode actionMode;
     private RecyclerView recyclerView;
+    private SwipeRefreshLayout swipeLayout;
 
     private NotesDataSource dataSource;
+
+    private ParseDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +55,11 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        actionModeCallback = new ActionModeCallback();
+
+        swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        swipeLayout.setOnRefreshListener(this);
 
         dataSource = new NotesDataSource(this);
         dataSource.open();
@@ -73,15 +90,6 @@ public class MainActivity extends AppCompatActivity
                 startActivityForResult(intent, 1);
             }
         });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
@@ -98,7 +106,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
 
         if (requestCode == 1) {
             dataSource.open();
@@ -121,16 +128,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
@@ -143,31 +140,6 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_settings) return true;
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camara) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     @Override
@@ -196,6 +168,53 @@ public class MainActivity extends AppCompatActivity
             actionMode.setTitle(String.valueOf(count));
             actionMode.invalidate();
         }
+    }
+
+    @Override
+    public void onFinishDialog(ParseDialog.status message) {
+        switch (message) {
+            case LOG_IN_SUCCESS:
+                    Snackbar.make(recyclerView, getString(R.string.parse_logged_in), Snackbar.LENGTH_LONG).show();
+                break;
+            case CREATE_ACCOUNT_SUCCESS:
+                    Snackbar.make(recyclerView, getString(R.string.parse_created_account), Snackbar.LENGTH_LONG).show();
+                break;
+            default:
+        }
+    }
+
+    @Override public void onRefresh() {
+        SharedPreferences prefs = this.getSharedPreferences("parse", Context.MODE_PRIVATE);
+        String email = prefs.getString("lastLogin", "");
+        String password = prefs.getString("lastPassword", "");
+
+        if(isOnline()) {
+            ParseUser.logInInBackground(email, password, new LogInCallback() {
+                public void done(ParseUser user, ParseException e) {
+                    if (user != null) {
+                        Snackbar.make(recyclerView, getString(R.string.parse_refresh), Snackbar.LENGTH_SHORT).show();
+
+                        // TODO Synchronizacja
+
+                        ParseUser.logOut();
+                        swipeLayout.setRefreshing(false);
+                    } else {
+                        dialog = new ParseDialog();
+                        dialog.show(getSupportFragmentManager(), null);
+                        swipeLayout.setRefreshing(false);
+                    }
+                }
+            });
+        } else {
+            Snackbar.make(recyclerView, getString(R.string.no_internet), Snackbar.LENGTH_LONG).show();
+            swipeLayout.setRefreshing(false);
+        }
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     private class ActionModeCallback implements ActionMode.Callback {

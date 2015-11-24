@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
@@ -18,6 +20,7 @@ import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
+import pl.xdcodes.stramek.awesomenotes.Config;
 import pl.xdcodes.stramek.awesomenotes.R;
 
 public class ParseDialog extends DialogFragment {
@@ -34,7 +37,7 @@ public class ParseDialog extends DialogFragment {
 
     private AlertDialog dialog;
 
-    public enum status { LOG_IN_SUCCESS, CREATE_ACCOUNT_SUCCESS }
+    public enum status { LOG_IN_SUCCESS, CREATE_ACCOUNT_SUCCESS, NO_INTERNET_CONNECTION }
 
     public interface StatusDialogListener {
         void onFinishDialog(status message);
@@ -62,7 +65,6 @@ public class ParseDialog extends DialogFragment {
         builder.setTitle(getString(R.string.parse_dialog_title));
         builder.setView(parseView);
         builder.setPositiveButton(getString(R.string.parse_log_in), new DialogInterface.OnClickListener() {
-
             public void onClick(DialogInterface dialog, int id) {}
         }).setNegativeButton(getString(R.string.parse_cancel), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {}
@@ -83,27 +85,26 @@ public class ParseDialog extends DialogFragment {
             public void onClick(View v) {
 
                 if(editTextsNotEmpty(loginET.getText().toString(), passwordET.getText().toString())) {
+                    if(isOnline()) {
+                        showProgressBar();
 
-                    showProgressBar();
-
-                    ParseUser.logInInBackground(loginET.getText().toString(), passwordET.getText().toString(), new LogInCallback() {
-                        public void done(ParseUser user, ParseException e) {
-                            if (user != null) {
-                                SharedPreferences.Editor editor = getContext().getSharedPreferences("parse", Context.MODE_PRIVATE).edit();
-                                editor.putString("lastLogin", loginET.getText().toString());
-                                editor.putString("lastPassword", passwordET.getText().toString());
-                                editor.commit();
-                                ParseUser.logOut();
-
-                                StatusDialogListener activity = (StatusDialogListener) getActivity();
-                                activity.onFinishDialog(status.LOG_IN_SUCCESS);
-
-                                dialog.dismiss();
-                            } else {
-                                hideProgressBar();
+                        ParseUser.logInInBackground(loginET.getText().toString(), passwordET.getText().toString(), new LogInCallback() {
+                            public void done(ParseUser user, ParseException e) {
+                                if (user != null) {
+                                    saveLoginAndPassword();
+                                    ParseUser.logOut();
+                                    returnDialogValue(status.LOG_IN_SUCCESS);
+                                } else {
+                                    hideProgressBar();
+                                    loginTIL.setError(getString(R.string.parse_wrong_login_or_password));
+                                    passwordTIL.setError(getString(R.string.parse_wrong_login_or_password));
+                                    loginET.requestFocus();
+                                }
                             }
-                        }
-                    });
+                        });
+                    } else {
+                        returnDialogValue(status.NO_INTERNET_CONNECTION);
+                    }
                 }
             }
         });
@@ -112,36 +113,58 @@ public class ParseDialog extends DialogFragment {
             @Override
             public void onClick(final View v) {
 
-                showProgressBar();
+                if(editTextsNotEmpty(loginET.getText().toString(), passwordET.getText().toString())) {
+                    if(isOnline()) {
 
-                ParseUser user = new ParseUser();
+                        showProgressBar();
 
-                user.setUsername(loginET.getText().toString());
-                user.setPassword(passwordET.getText().toString());
+                        ParseUser user = new ParseUser();
 
-                user.signUpInBackground(new SignUpCallback() {
-                    public void done(ParseException e) {
-                        if (e == null) {
-                            SharedPreferences.Editor editor = getContext().getSharedPreferences("parse", Context.MODE_PRIVATE).edit();
-                            editor.putString("lastLogin", loginET.getText().toString());
-                            editor.putString("lastPassword", passwordET.getText().toString());
-                            editor.commit();
+                        user.setUsername(loginET.getText().toString());
+                        user.setPassword(passwordET.getText().toString());
 
-                            StatusDialogListener activity = (StatusDialogListener) getActivity();
-                            activity.onFinishDialog(status.CREATE_ACCOUNT_SUCCESS);
-                            dialog.dismiss();
-                        } else {
-                            hideProgressBar();
-                        }
+                        user.signUpInBackground(new SignUpCallback() {
+                            public void done(ParseException e) {
+                                if (e == null) {
+                                    saveLoginAndPassword();
+                                    returnDialogValue(status.CREATE_ACCOUNT_SUCCESS);
+                                } else {
+                                    hideProgressBar();
+                                    loginTIL.setError(getString(R.string.parse_login_taken));
+                                    loginET.requestFocus();
+                                }
+                            }
+                        });
+                    } else {
+                        returnDialogValue(status.NO_INTERNET_CONNECTION);
                     }
-                });
+                }
             }
         });
 
         return dialog;
     }
 
-    boolean editTextsNotEmpty(String login, String password) {
+    private void saveLoginAndPassword() {
+        SharedPreferences.Editor editor = getContext().getSharedPreferences("parse", Context.MODE_PRIVATE).edit();
+        editor.putString("lastLogin", loginET.getText().toString());
+        editor.putString("lastPassword", passwordET.getText().toString());
+        editor.commit();
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) Config.context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    private void returnDialogValue(status s) {
+        StatusDialogListener activity = (StatusDialogListener) getActivity();
+        activity.onFinishDialog(s);
+        dialog.dismiss();
+    }
+
+    private boolean editTextsNotEmpty(String login, String password) {
 
         if(login.length() < 5) {
             loginTIL.setError("Login musi mieć conajmniej 5 znaków");
@@ -160,7 +183,7 @@ public class ParseDialog extends DialogFragment {
         return true;
     }
 
-    void showProgressBar() {
+    private void showProgressBar() {
         loginET.setVisibility(View.INVISIBLE);
         passwordET.setVisibility(View.INVISIBLE);
         loginTIL.setVisibility(View.INVISIBLE);
@@ -168,7 +191,7 @@ public class ParseDialog extends DialogFragment {
         progressBar.setVisibility(View.VISIBLE);
     }
 
-    void hideProgressBar() {
+    private void hideProgressBar() {
         loginET.setVisibility(View.VISIBLE);
         passwordET.setVisibility(View.VISIBLE);
         loginTIL.setVisibility(View.VISIBLE);

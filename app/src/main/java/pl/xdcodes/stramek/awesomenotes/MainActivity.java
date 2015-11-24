@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Config.context = this;
+
         actionModeCallback = new ActionModeCallback();
 
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
@@ -137,7 +139,12 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) return true;
+        //if (id == R.id.action_settings) return true;
+        if (id == R.id.action_synchronization) {
+            dialog = new ParseDialog();
+            dialog.show(getSupportFragmentManager(), null);
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -178,6 +185,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case CREATE_ACCOUNT_SUCCESS:
                     Snackbar.make(recyclerView, getString(R.string.parse_created_account), Snackbar.LENGTH_LONG).show();
+                break;
+            case NO_INTERNET_CONNECTION:
+                Snackbar.make(recyclerView, getString(R.string.no_internet), Snackbar.LENGTH_LONG).show();
                 break;
             default:
         }

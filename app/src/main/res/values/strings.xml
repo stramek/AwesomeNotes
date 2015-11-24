@@ -5,6 +5,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_parse">Synchronizacja</string>
 
     <string name="empty">Uzupełnij pola...</string>
     <string name="no_title">Uzupełnij tutuł...</string>
@@ -20,6 +21,8 @@
     <string name="parse_log_in">Zaloguj</string>
     <string name="parse_cancel">Wyjdź</string>
     <string name="parse_create">Załóż</string>
+    <string name="parse_login_taken">Login zajęty</string>
+    <string name="parse_wrong_login_or_password">Błędny login lub hasło</string>
 
 
 

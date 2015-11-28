@@ -7,14 +7,19 @@ import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
 
 public class NotesDataSource {
 
+    private static final String TAG = "NotesDataSource";
+    
     private SQLiteDatabase database;
     private SQLiteHelper dbHelper;
     private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_TITLE, NoteTable.COLUMN_NOTE };
+
+    private static final AtomicLong TIME_STAMP = new AtomicLong();
 
     public NotesDataSource(Context context) {
         dbHelper = new SQLiteHelper(context);
@@ -32,8 +37,24 @@ public class NotesDataSource {
         ContentValues values = new ContentValues();
         values.put(NoteTable.COLUMN_TITLE, title);
         values.put(NoteTable.COLUMN_NOTE, description);
-        long insertId = database.insert(NoteTable.TABLE_NOTES, null, values);
-        Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + insertId,
+        long uniqueId = getUniqueMillis();
+        values.put(NoteTable.COLUMN_ID, uniqueId);
+        database.insert(NoteTable.TABLE_NOTES, null, values);
+        Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + uniqueId,
+                null, null, null, null);
+        cursor.moveToFirst();
+        Note note = cursorToNote(cursor);
+        cursor.close();
+        return note;
+    }
+
+    public Note createNote(long id, String title, String description) {
+        ContentValues values = new ContentValues();
+        values.put(NoteTable.COLUMN_TITLE, title);
+        values.put(NoteTable.COLUMN_NOTE, description);
+        values.put(NoteTable.COLUMN_ID, id);
+        database.insert(NoteTable.TABLE_NOTES, null, values);
+        Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
                 null, null, null, null);
         cursor.moveToFirst();
         Note note = cursorToNote(cursor);
@@ -62,10 +83,17 @@ public class NotesDataSource {
     }
 
     private Note cursorToNote(Cursor cursor) {
-        Note note = new Note();
-        note.setId(cursor.getLong(0));
-        note.setTitle(cursor.getString(1));
-        note.setNoteText(cursor.getString(2));
-        return note;
+        return new Note(cursor.getLong(0), cursor.getString(1), cursor.getString(2), false);
+    }
+
+    private static long getUniqueMillis() {
+        long now = System.currentTimeMillis();
+        while (true) {
+            long last = TIME_STAMP.get();
+            if (now <= last)
+                now = last + 1;
+            if (TIME_STAMP.compareAndSet(last, now))
+                return now;
+        }
     }
 }

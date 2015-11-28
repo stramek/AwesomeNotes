@@ -7,9 +7,7 @@ public class Note {
     private String noteText;
     private boolean important;
 
-    public Note() {
-        important = false;
-    }
+    public Note() { }
 
     public Note(long id, String title, String noteText, boolean important) {
         this.id = id;
@@ -42,7 +40,11 @@ public class Note {
         this.noteText = noteText;
     }
 
-    public boolean isImportant() {
+    public boolean getImportant() {
         return important;
+    }
+
+    public void setImportant(boolean important) {
+        this.important = important;
     }
 }

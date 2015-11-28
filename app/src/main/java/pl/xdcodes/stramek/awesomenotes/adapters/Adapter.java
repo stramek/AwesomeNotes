@@ -83,6 +83,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     }
 
     private void removeRange(int positionStart, int itemCount) {
+
         for (int i = 0; i < itemCount; ++i) {
             notes.remove(positionStart);
         }
@@ -117,7 +118,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     public int getItemViewType(int position) {
         final Note note = notes.get(position);
 
-        return note.isImportant() ? IMPORTANT : NOT_IMPORTANT;
+        return note.getImportant() ? IMPORTANT : NOT_IMPORTANT;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {

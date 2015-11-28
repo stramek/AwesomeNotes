@@ -15,7 +15,7 @@
 
     <string name="parse_logged_in">Zalogowano</string>
     <string name="parse_created_account">Konto utworzone z powodzeniem</string>
-    <string name="parse_refresh">Odświerzam...</string>
+    <string name="parse_refresh">Poprawnie zalogowano. Synchronizuję notatki.</string>
 
     <string name="parse_dialog_title">Konfiguracja konta</string>
     <string name="parse_log_in">Zaloguj</string>

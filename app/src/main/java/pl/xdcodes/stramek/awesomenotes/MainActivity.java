@@ -22,21 +22,29 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import pl.xdcodes.stramek.awesomenotes.adapters.Adapter;
 import pl.xdcodes.stramek.awesomenotes.database.NotesDataSource;
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
+import pl.xdcodes.stramek.awesomenotes.parse.NoteParse;
 import pl.xdcodes.stramek.awesomenotes.parse.ParseDialog;
 
 public class MainActivity extends AppCompatActivity
         implements Adapter.ViewHolder.ClickListener,
                    SwipeRefreshLayout.OnRefreshListener,
                    ParseDialog.StatusDialogListener {
+
+    private static final String TAG = "MainActivity";
 
     private Adapter adapter;
     private ActionModeCallback actionModeCallback;
@@ -73,6 +81,7 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setAdapter(adapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        // TODO Może jakieś dynamiczne przydzielanie kolumn do wielkości ekranu?
         int column;
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             column = 3;
@@ -86,7 +95,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent= new Intent(MainActivity.this, AddNote.class);
+                Intent intent = new Intent(MainActivity.this, AddNote.class);
                 intent.setAction(Intent.ACTION_VIEW);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 startActivityForResult(intent, 1);
@@ -110,18 +119,21 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode == 1) {
-            dataSource.open();
-            String resultTitle;
-            String resultNote;
+            if(resultCode == Activity.RESULT_OK) {
 
-            if(resultCode == Activity.RESULT_OK){
+                dataSource.open();
                 Note n;
 
-                resultTitle = data.getStringExtra("title");
-                resultNote = data.getStringExtra("note");
+                String resultTitle = data.getStringExtra("title");
+                String resultNote = data.getStringExtra("note");
 
                 n = dataSource.createNote(resultTitle, resultNote);
                 adapter.addNote(n);
+
+                ///////////////////////// LOGIN PARSE
+                NoteParse np = new NoteParse(n);
+                //np.setACL(new ParseACL(ParseUser.getCurrentUser()));
+                np.saveInBackground();
 
                 adapter.notifyItemInserted(0);
                 recyclerView.smoothScrollToPosition(0);
@@ -181,10 +193,10 @@ public class MainActivity extends AppCompatActivity
     public void onFinishDialog(ParseDialog.status message) {
         switch (message) {
             case LOG_IN_SUCCESS:
-                    Snackbar.make(recyclerView, getString(R.string.parse_logged_in), Snackbar.LENGTH_LONG).show();
+                Snackbar.make(recyclerView, getString(R.string.parse_logged_in), Snackbar.LENGTH_LONG).show();
                 break;
             case CREATE_ACCOUNT_SUCCESS:
-                    Snackbar.make(recyclerView, getString(R.string.parse_created_account), Snackbar.LENGTH_LONG).show();
+                Snackbar.make(recyclerView, getString(R.string.parse_created_account), Snackbar.LENGTH_LONG).show();
                 break;
             case NO_INTERNET_CONNECTION:
                 Snackbar.make(recyclerView, getString(R.string.no_internet), Snackbar.LENGTH_LONG).show();
@@ -204,9 +216,50 @@ public class MainActivity extends AppCompatActivity
                     if (user != null) {
                         Snackbar.make(recyclerView, getString(R.string.parse_refresh), Snackbar.LENGTH_SHORT).show();
 
-                        // TODO Synchronizacja
+                        // TODO Opakowac w ladne funkcje
+                        // Dodawanie notatek
+                        List<Note> currentNotes = adapter.getNotes();
+                        HashSet<Long> ids = new HashSet<>();
 
-                        ParseUser.logOut();
+
+                        HashSet parseIds = getIdsFromParse(); //NOWE
+                        List<Integer> notesToRemove = new LinkedList<>();
+
+                        int i = 0; //NOWE
+                        for(Note n : currentNotes) {
+                            ids.add(n.getId());
+
+                            if(!parseIds.contains(n.getId())) {
+                                dataSource.deleteNote(n);
+                                //adapter.removeNote(i);
+                                notesToRemove.add(i);
+                            }
+                            i++;
+                        }
+                        adapter.removeNotes(notesToRemove);
+
+
+                        ParseQuery<NoteParse> query = new ParseQuery<>("NoteParse");
+                        query.orderByDescending("_created_at");
+                        try {
+                            List<NoteParse> list = query.find();
+                            dataSource.open();
+                            for (NoteParse n : list) {
+                                long noteId = n.getId();
+                                if (!(ids.contains(noteId))) {
+                                    /*long resultId = n.getId();
+                                    String resultTitle = n.getTitle();
+                                    String resultNote = n.getNoteText();*/
+                                    Note note = dataSource.createNote(noteId, n.getTitle(), n.getNoteText());
+                                    adapter.addNote(note);
+                                    adapter.notifyItemInserted(0);
+                                }
+                            }
+                        } catch (ParseException ex) {
+                            ex.printStackTrace();
+                        }
+
+                        //ParseUser.logOut();
                         swipeLayout.setRefreshing(false);
                     } else {
                         dialog = new ParseDialog();
@@ -225,6 +278,21 @@ public class MainActivity extends AppCompatActivity
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    private HashSet getIdsFromParse() {
+        HashSet<Long> idsFromParse = new HashSet<>();
+        ParseQuery<NoteParse> query = new ParseQuery<>("NoteParse");
+        try {
+            List<NoteParse> list;
+            list = query.find();
+            for (NoteParse n : list) {
+                idsFromParse.add(n.getId());
+            }
+        } catch (ParseException ex) {
+            ex.printStackTrace();
+        }
+        return idsFromParse;
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
@@ -256,6 +324,7 @@ public class MainActivity extends AppCompatActivity
                     for (Note n : list) {
                         if (items.contains(i)) {
                             dataSource.deleteNote(n);
+                            deleteNote(n.getId());
                         }
                         i++;
                     }
@@ -272,6 +341,21 @@ public class MainActivity extends AppCompatActivity
         public void onDestroyActionMode(ActionMode mode) {
             adapter.clearSelection();
             actionMode = null;
+        }
+
+        private void deleteNote(long id){
+            ParseQuery<ParseObject> query=ParseQuery.getQuery("NoteParse");
+            query.whereEqualTo("id", id);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> parseObjects, ParseException e) {
+                    if(e==null) {
+                        for (ParseObject delete : parseObjects) {
+                            delete.deleteInBackground();
+                        }
+                    }
+                }
+            });
         }
     }
 }

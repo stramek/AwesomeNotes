@@ -14,7 +14,7 @@
         android:padding="8dp"
         android:textSize="22sp"
         android:layout_below="@+id/title"
-        style="@style/Base.TextAppearance.AppCompat.Subhead" />
+        android:textColor="@color/text" />
 
     <View
         android:id="@+id/selected_overlay"

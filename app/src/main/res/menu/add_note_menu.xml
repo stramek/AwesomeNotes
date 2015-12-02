@@ -1,0 +1,12 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".AddNote">
+    <item
+        android:id="@+id/action_important"
+        android:title="@string/action_important"
+        app:actionViewClass="android.support.v7.widget.AppCompatCheckBox"
+        android:checkable="true"
+        app:showAsAction="ifRoom|withText"/>
+</menu>

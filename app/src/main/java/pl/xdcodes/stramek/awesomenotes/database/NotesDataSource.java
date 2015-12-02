@@ -18,7 +18,7 @@ public class NotesDataSource {
     
     private SQLiteDatabase database;
     private SQLiteHelper dbHelper;
-    private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_NOTE };
+    private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_NOTE, NoteTable.COLUMN_IMPORTANT };
 
     private static final AtomicLong TIME_STAMP = new AtomicLong();
 
@@ -34,9 +34,10 @@ public class NotesDataSource {
         dbHelper.close();
     }
 
-    public Note createNote(String description) {
+    public Note createNote(String description, boolean important) {
         ContentValues values = new ContentValues();
         values.put(NoteTable.COLUMN_NOTE, description);
+        values.put(NoteTable.COLUMN_IMPORTANT, important);
         long uniqueId = getUniqueMillis();
         values.put(NoteTable.COLUMN_ID, uniqueId);
         database.insert(NoteTable.TABLE_NOTES, null, values);
@@ -67,6 +68,7 @@ public class NotesDataSource {
         double id = n.getId();
         values.put(NoteTable.COLUMN_NOTE, n.getNoteText());
         values.put(NoteTable.COLUMN_ID, id);
+        values.put(NoteTable.COLUMN_IMPORTANT, n.getImportant());
         database.insert(NoteTable.TABLE_NOTES, null, values);
         Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
                 null, null, null, null);
@@ -101,7 +103,7 @@ public class NotesDataSource {
     }
 
     private Note cursorToNote(Cursor cursor) {
-        return new Note(cursor.getLong(0), cursor.getString(1), false);
+        return new Note(cursor.getLong(0), cursor.getString(1), cursor.getInt(2));
     }
 
     private static long getUniqueMillis() {

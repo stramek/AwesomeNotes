@@ -122,8 +122,9 @@ public class MainActivity extends AppCompatActivity
                 final Note n;
 
                 String resultNote = data.getStringExtra("note");
+                boolean important = data.getBooleanExtra("important", false);
 
-                n = dataSource.createNote(resultNote);
+                n = dataSource.createNote(resultNote, important);
                 adapter.addNote(n);
 
                 if(isOnline()) {
@@ -212,7 +213,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRefresh() {
         if(isOnline()) {
-
             SharedPreferences prefs = this.getSharedPreferences("parse", Context.MODE_PRIVATE);
             String email = prefs.getString("lastLogin", "");
             String password = prefs.getString("lastPassword", "");
@@ -220,8 +220,6 @@ public class MainActivity extends AppCompatActivity
             ParseUser.logInInBackground(email, password, new LogInCallback() {
                 public void done(ParseUser user, ParseException e) {
                     if (user != null) {
-                        Snackbar.make(recyclerView, getString(R.string.parse_refresh), Snackbar.LENGTH_SHORT).show();
-
                         dataSource.deleteAllNotes();
                         adapter.removeAllNotes();
 
@@ -312,7 +310,7 @@ public class MainActivity extends AppCompatActivity
             query.findInBackground(new FindCallback<ParseObject>() {
                 @Override
                 public void done(List<ParseObject> parseObjects, ParseException e) {
-                    if(e==null) {
+                    if(e == null) {
                         for (ParseObject delete : parseObjects) {
                             delete.deleteInBackground();
                         }

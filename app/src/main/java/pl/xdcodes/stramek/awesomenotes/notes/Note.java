@@ -16,6 +16,13 @@ public class Note {
         this.important = important;
     }
 
+    public Note(long id, String noteText, int important) {
+        this.id = id;
+        this.noteText = noteText;
+
+        this.important = important == 1;
+    }
+
     public Note(NoteParse n) {
         id = n.getId();
         noteText = n.getNoteText();

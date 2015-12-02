@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.view.Menu;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -14,6 +16,7 @@ public class AddNote extends AppCompatActivity {
 
     private FloatingActionButton fab;
     private EditText noteText;
+    private AppCompatCheckBox important;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,7 @@ public class AddNote extends AppCompatActivity {
                 } else {
                     Intent returnIntent = new Intent();
                     returnIntent.putExtra("note", noteText.getText().toString());
+                    returnIntent.putExtra("important", important.isChecked());
                     setResult(Activity.RESULT_OK, returnIntent);
                     finish();
                 }
@@ -41,8 +45,14 @@ public class AddNote extends AppCompatActivity {
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.add_note_menu, menu);
+
+        important = (AppCompatCheckBox) menu.findItem(R.id.action_important).getActionView();
+        important.setText(getString(R.string.action_important));
+        important.setPadding(important.getPaddingLeft(), important.getPaddingTop(), 40, important.getPaddingBottom());
+
+        return true;
     }
 
 }

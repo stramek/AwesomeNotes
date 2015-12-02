@@ -34,7 +34,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         notes = new LinkedList<>();
 
         for(Note n : list) {
-            notes.addFirst(new Note(n.getId(), n.getNoteText(), false));
+            notes.addFirst(new Note(n.getId(), n.getNoteText(), n.getImportant()));
         }
     }
 
@@ -99,7 +99,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final int layout = viewType == NOT_IMPORTANT ? R.layout.note : R.layout.note_active;
+        final int layout = viewType == NOT_IMPORTANT ? R.layout.note : R.layout.note_important;
 
         View v = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
         return new ViewHolder(v, clickListener);
@@ -111,6 +111,9 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
         holder.subtitle.setText(note.getNoteText());
         holder.selectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
+        if(note.getImportant()) {
+            holder.important.setVisibility(isSelected(position) ? View.INVISIBLE : View.VISIBLE);
+        }
     }
 
     @Override
@@ -133,6 +136,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         TextView title;
         TextView subtitle;
         View selectedOverlay;
+        View important;
 
         private ClickListener listener;
 
@@ -142,6 +146,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
             title = (TextView) itemView.findViewById(R.id.title);
             subtitle = (TextView) itemView.findViewById(R.id.noteText);
             selectedOverlay = itemView.findViewById(R.id.selected_overlay);
+            important = itemView.findViewById(R.id.important);
 
             this.listener = listener;
 

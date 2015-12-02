@@ -1,29 +1,20 @@
 <resources>
     <string name="app_name">AwesomeNotes</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-
-    <string name="action_settings">Settings</string>
     <string name="action_parse">Synchronizacja</string>
+    <string name="action_important">Ważna</string>
 
-    <string name="empty">Uzupełnij pola...</string>
-    <string name="no_title">Uzupełnij tutuł...</string>
     <string name="no_noteText">Uzupełnij notatkę...</string>
 
     <string name="no_internet">Brak połączenia z internetem!</string>
 
     <string name="parse_logged_in">Zalogowano</string>
-    <string name="parse_created_account">Konto utworzone z powodzeniem</string>
-    <string name="parse_refresh">Poprawnie zalogowano. Synchronizuję notatki.</string>
+    <string name="parse_created_account">Konto utworzone z powodzeniem!</string>
 
     <string name="parse_dialog_title">Konfiguracja konta</string>
     <string name="parse_log_in">Zaloguj</string>
     <string name="parse_cancel">Wyjdź</string>
     <string name="parse_create">Załóż</string>
     <string name="parse_login_taken">Login zajęty</string>
-    <string name="parse_wrong_login_or_password">Błędny login lub hasło</string>
-
-
-
+    <string name="parse_wrong_login_or_password">Błędny login lub hasło.</string>
 </resources>

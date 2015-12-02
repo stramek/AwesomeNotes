@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:foreground="?android:attr/selectableItemBackground"
-    app:cardUseCompatPadding="true" >
+    app:cardUseCompatPadding="true">
 
     <TextView
         android:id="@+id/noteText"
@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:textSize="22sp"
-        android:textColor="@android:color/darker_gray"
-        style="@style/Base.TextAppearance.AppCompat.Subhead" />
+        android:textColor="@color/text"/>
 
     <View
         android:id="@+id/selected_overlay"
@@ -22,5 +21,11 @@
         android:layout_height="fill_parent"
         android:background="@color/checked"
         android:visibility="invisible"/>
+
+    <View
+        android:id="@+id/important"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/important"/>
 
 </android.support.v7.widget.CardView>

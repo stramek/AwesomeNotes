@@ -4,12 +4,13 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class NoteTable {
 
-    public static final String TABLE_NOTES = "notes";
     public static final String COLUMN_ID = "_id";
+    public static final String TABLE_NOTES = "notes";
     public static final String COLUMN_NOTE = "note";
+    public static final String COLUMN_IMPORTANT = "important";
 
     private static final String DATABASE_CREATE = "create table "+ TABLE_NOTES + "(" + COLUMN_ID
-            + " text not null, " + COLUMN_NOTE + " text not null);";
+            + " DOUBLE, " + COLUMN_NOTE + " text not null, " + COLUMN_IMPORTANT + " INTEGER);";
 
     public static void onCreate(SQLiteDatabase db) {
         db.execSQL(DATABASE_CREATE);

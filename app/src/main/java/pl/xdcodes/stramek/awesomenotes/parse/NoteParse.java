@@ -12,10 +12,9 @@ public class NoteParse extends ParseObject {
         super();
     }
 
-    public NoteParse(long id, String title, String noteText, boolean important) {
+    public NoteParse(long id, String noteText, boolean important) {
         super();
         setId(id);
-        setTitle(title);
         setNoteText(noteText);
         setImportant(important);
     }
@@ -23,7 +22,6 @@ public class NoteParse extends ParseObject {
     public NoteParse(Note n) {
         super();
         setId(n.getId());
-        setTitle(n.getTitle());
         setNoteText(n.getNoteText());
         setImportant(n.getImportant());
     }
@@ -34,14 +32,6 @@ public class NoteParse extends ParseObject {
 
     public void setId(long id) {
         put("id", id);
-    }
-
-    public String getTitle() {
-        return getString("title");
-    }
-
-    public void setTitle(String title) {
-        put("title", title);
     }
 
     public String getNoteText() {

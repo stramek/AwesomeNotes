@@ -1,19 +1,25 @@
 package pl.xdcodes.stramek.awesomenotes.notes;
 
+import pl.xdcodes.stramek.awesomenotes.parse.NoteParse;
+
 public class Note {
 
     private long id;
-    private String title;
     private String noteText;
     private boolean important;
 
     public Note() { }
 
-    public Note(long id, String title, String noteText, boolean important) {
+    public Note(long id, String noteText, boolean important) {
         this.id = id;
-        this.title = title;
         this.noteText = noteText;
         this.important = important;
+    }
+
+    public Note(NoteParse n) {
+        id = n.getId();
+        noteText = n.getNoteText();
+        important = n.getImportant();
     }
 
     public long getId() {
@@ -22,14 +28,6 @@ public class Note {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public String getNoteText() {

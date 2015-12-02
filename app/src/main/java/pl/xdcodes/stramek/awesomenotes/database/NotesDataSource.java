@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
+import pl.xdcodes.stramek.awesomenotes.parse.NoteParse;
 
 public class NotesDataSource {
 
@@ -17,7 +18,7 @@ public class NotesDataSource {
     
     private SQLiteDatabase database;
     private SQLiteHelper dbHelper;
-    private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_TITLE, NoteTable.COLUMN_NOTE };
+    private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_NOTE };
 
     private static final AtomicLong TIME_STAMP = new AtomicLong();
 
@@ -33,9 +34,8 @@ public class NotesDataSource {
         dbHelper.close();
     }
 
-    public Note createNote(String title, String description) {
+    public Note createNote(String description) {
         ContentValues values = new ContentValues();
-        values.put(NoteTable.COLUMN_TITLE, title);
         values.put(NoteTable.COLUMN_NOTE, description);
         long uniqueId = getUniqueMillis();
         values.put(NoteTable.COLUMN_ID, uniqueId);
@@ -48,10 +48,24 @@ public class NotesDataSource {
         return note;
     }
 
-    public Note createNote(long id, String title, String description) {
+    /*public Note createNote(long id, String title, String description) {
         ContentValues values = new ContentValues();
         values.put(NoteTable.COLUMN_TITLE, title);
         values.put(NoteTable.COLUMN_NOTE, description);
+        values.put(NoteTable.COLUMN_ID, id);
+        database.insert(NoteTable.TABLE_NOTES, null, values);
+        Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
+                null, null, null, null);
+        cursor.moveToFirst();
+        Note note = cursorToNote(cursor);
+        cursor.close();
+        return note;
+    }*/
+
+    public Note createNote(NoteParse n) {
+        ContentValues values = new ContentValues();
+        double id = n.getId();
+        values.put(NoteTable.COLUMN_NOTE, n.getNoteText());
         values.put(NoteTable.COLUMN_ID, id);
         database.insert(NoteTable.TABLE_NOTES, null, values);
         Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
@@ -65,6 +79,10 @@ public class NotesDataSource {
     public void deleteNote(Note note) {
         long id = note.getId();
         database.delete(NoteTable.TABLE_NOTES, NoteTable.COLUMN_ID + " = " + id, null);
+    }
+
+    public void deleteAllNotes() {
+        database.delete(NoteTable.TABLE_NOTES, null, null);
     }
 
     public List<Note> getAllNotes() {
@@ -83,7 +101,7 @@ public class NotesDataSource {
     }
 
     private Note cursorToNote(Cursor cursor) {
-        return new Note(cursor.getLong(0), cursor.getString(1), cursor.getString(2), false);
+        return new Note(cursor.getLong(0), cursor.getString(1), false);
     }
 
     private static long getUniqueMillis() {

@@ -13,7 +13,6 @@ import android.widget.EditText;
 public class AddNote extends AppCompatActivity {
 
     private FloatingActionButton fab;
-    private EditText title;
     private EditText noteText;
 
     @Override
@@ -21,26 +20,18 @@ public class AddNote extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_new_note);
 
-        title = (EditText) findViewById(R.id.title);
         noteText = (EditText) findViewById(R.id.note);
-        title.requestFocus();
+        noteText.requestFocus();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         fab = (FloatingActionButton) findViewById(R.id.fab_add);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(title.length() == 0 || noteText.length() == 0) {
-                    if(title.length() == 0 && noteText.length() == 0) {
-                        Snackbar.make(v, getString(R.string.empty), Snackbar.LENGTH_LONG).show();
-                    } else if (title.length() == 0) {
-                        Snackbar.make(v, getString(R.string.no_title), Snackbar.LENGTH_LONG).show();
-                    } else {
+                if(noteText.length() == 0) {
                         Snackbar.make(v, getString(R.string.no_noteText), Snackbar.LENGTH_LONG).show();
-                    }
                 } else {
                     Intent returnIntent = new Intent();
-                    returnIntent.putExtra("title", title.getText().toString());
                     returnIntent.putExtra("note", noteText.getText().toString());
                     setResult(Activity.RESULT_OK, returnIntent);
                     finish();

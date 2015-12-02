@@ -34,7 +34,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         notes = new LinkedList<>();
 
         for(Note n : list) {
-            notes.addFirst(new Note(n.getId(), n.getTitle(), n.getNoteText(), false));
+            notes.addFirst(new Note(n.getId(), n.getNoteText(), false));
         }
     }
 
@@ -44,11 +44,17 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
 
     public void addNote(Note note) {
         notes.addFirst(note);
+        notifyItemInserted(0);
     }
 
     public void removeNote(int position) {
         notes.remove(position);
         notifyItemRemoved(position);
+    }
+
+    public void removeAllNotes() {
+        notes.clear();
+        notifyDataSetChanged();
     }
 
     public void removeNotes(List<Integer> positions) {
@@ -103,9 +109,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Note note = notes.get(position);
 
-        holder.title.setText(note.getTitle());
         holder.subtitle.setText(note.getNoteText());
-
         holder.selectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -136,7 +140,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
             super(itemView);
 
             title = (TextView) itemView.findViewById(R.id.title);
-            subtitle = (TextView) itemView.findViewById(R.id.subtitle);
+            subtitle = (TextView) itemView.findViewById(R.id.noteText);
             selectedOverlay = itemView.findViewById(R.id.selected_overlay);
 
             this.listener = listener;

@@ -17,13 +17,13 @@ public class NotesDataSource {
     private static final String TAG = "NotesDataSource";
     
     private SQLiteDatabase database;
-    private SQLiteHelper dbHelper;
+    private NoteDatabaseHelper dbHelper;
     private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_NOTE, NoteTable.COLUMN_IMPORTANT };
 
     private static final AtomicLong TIME_STAMP = new AtomicLong();
 
     public NotesDataSource(Context context) {
-        dbHelper = new SQLiteHelper(context);
+        dbHelper = new NoteDatabaseHelper(context);
     }
 
     public void open() {
@@ -41,6 +41,7 @@ public class NotesDataSource {
         long uniqueId = getUniqueMillis();
         values.put(NoteTable.COLUMN_ID, uniqueId);
         database.insert(NoteTable.TABLE_NOTES, null, values);
+
         Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + uniqueId,
                 null, null, null, null);
         cursor.moveToFirst();
@@ -49,20 +50,6 @@ public class NotesDataSource {
         return note;
     }
 
-    /*public Note createNote(long id, String title, String description) {
-        ContentValues values = new ContentValues();
-        values.put(NoteTable.COLUMN_TITLE, title);
-        values.put(NoteTable.COLUMN_NOTE, description);
-        values.put(NoteTable.COLUMN_ID, id);
-        database.insert(NoteTable.TABLE_NOTES, null, values);
-        Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
-                null, null, null, null);
-        cursor.moveToFirst();
-        Note note = cursorToNote(cursor);
-        cursor.close();
-        return note;
-    }*/
-
     public Note createNote(NoteParse n) {
         ContentValues values = new ContentValues();
         double id = n.getId();
@@ -70,6 +57,7 @@ public class NotesDataSource {
         values.put(NoteTable.COLUMN_ID, id);
         values.put(NoteTable.COLUMN_IMPORTANT, n.getImportant());
         database.insert(NoteTable.TABLE_NOTES, null, values);
+
         Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
                 null, null, null, null);
         cursor.moveToFirst();

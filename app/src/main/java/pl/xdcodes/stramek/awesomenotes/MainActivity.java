@@ -94,11 +94,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     private int getNumberOfColumns() {
-        float scalefactor = getResources().getDisplayMetrics().density * 150;
+        float scaleFactor = getResources().getDisplayMetrics().density * 150;
         DisplayMetrics displaymetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         int width = displaymetrics.widthPixels;
-        return (int) ((float) width / scalefactor);
+        return (int) ((float) width / scaleFactor);
     }
 
     @Override

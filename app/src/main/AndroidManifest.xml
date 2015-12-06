@@ -23,6 +23,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".AddNote"/>
+        <provider
+            android:authorities="pl.xdcodes.stramek.awesomenotes.contentprovider"
+            android:name=".contentprovider.NotesContentProvider">
+        </provider>
     </application>
 
 </manifest>

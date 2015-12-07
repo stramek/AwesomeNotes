@@ -1,10 +1,8 @@
 package pl.xdcodes.stramek.awesomenotes.adapters;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,7 +12,7 @@ import java.util.List;
 import pl.xdcodes.stramek.awesomenotes.R;
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
 
-public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
+public class Adapter extends SelectableAdapter<ViewHolder> {
 
     @SuppressWarnings("unused")
     private static final String TAG = Adapter.class.getSimpleName();
@@ -22,7 +20,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     private static final int NOT_IMPORTANT = 0;
     private static final int IMPORTANT = 1;
 
-    private LinkedList<Note> notes;
+    private static LinkedList<Note> notes; //TODO na 100% da się to zrobić ładniej bez statica...
 
     private ViewHolder.ClickListener clickListener;
 
@@ -38,7 +36,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         }
     }
 
-    public LinkedList getNotes() {
+    public static LinkedList getNotes() {
         return notes;
     }
 
@@ -50,6 +48,17 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     public void removeNote(int position) {
         notes.remove(position);
         notifyItemRemoved(position);
+    }
+
+    public void editNote(int position, String newNote, boolean important) {
+        Note n = notes.get(position);
+        n.setNoteText(newNote);
+        n.setImportant(important);
+        notifyItemChanged(position);
+    }
+
+    public static Note getNote(int position) {
+        return notes.get(position);
     }
 
     public void removeAllNotes() {
@@ -109,7 +118,7 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Note note = notes.get(position);
 
-        holder.subtitle.setText(note.getNoteText());
+        holder.noteText.setText(note.getNoteText());
         holder.selectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
         if(note.getImportant()) {
             holder.important.setVisibility(isSelected(position) ? View.INVISIBLE : View.VISIBLE);
@@ -126,52 +135,5 @@ public class Adapter extends SelectableAdapter<Adapter.ViewHolder> {
         final Note note = notes.get(position);
 
         return note.getImportant() ? IMPORTANT : NOT_IMPORTANT;
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-
-        @SuppressWarnings("unsused")
-        private final String TAG = ViewHolder.class.getSimpleName();
-
-        TextView title;
-        TextView subtitle;
-        View selectedOverlay;
-        View important;
-
-        private ClickListener listener;
-
-        public ViewHolder(View itemView, ClickListener listener) {
-            super(itemView);
-
-            title = (TextView) itemView.findViewById(R.id.title);
-            subtitle = (TextView) itemView.findViewById(R.id.noteText);
-            selectedOverlay = itemView.findViewById(R.id.selected_overlay);
-            important = itemView.findViewById(R.id.important);
-
-            this.listener = listener;
-
-            itemView.setOnClickListener(this);
-            itemView.setOnLongClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            if (listener != null) {
-                listener.onItemClicked(getAdapterPosition());
-            }
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            if (listener != null) {
-                return listener.onItemLongClicked(getAdapterPosition());
-            }
-            return false;
-        }
-
-        public interface ClickListener {
-            void onItemClicked(int position);
-            boolean onItemLongClicked(int position);
-        }
     }
 }

@@ -1,5 +1,6 @@
 package pl.xdcodes.stramek.awesomenotes.database;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -9,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import pl.xdcodes.stramek.awesomenotes.Config;
+import pl.xdcodes.stramek.awesomenotes.contentprovider.NotesContentProvider;
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
 import pl.xdcodes.stramek.awesomenotes.parse.NoteParse;
 
@@ -19,11 +22,13 @@ public class NotesDataSource {
     private SQLiteDatabase database;
     private NoteDatabaseHelper dbHelper;
     private String[] allColumns = { NoteTable.COLUMN_ID, NoteTable.COLUMN_NOTE, NoteTable.COLUMN_IMPORTANT };
+    private ContentResolver contentResolver;
 
     private static final AtomicLong TIME_STAMP = new AtomicLong();
 
     public NotesDataSource(Context context) {
         dbHelper = new NoteDatabaseHelper(context);
+        contentResolver = Config.context.getContentResolver();
     }
 
     public void open() {
@@ -40,7 +45,7 @@ public class NotesDataSource {
         values.put(NoteTable.COLUMN_IMPORTANT, important);
         long uniqueId = getUniqueMillis();
         values.put(NoteTable.COLUMN_ID, uniqueId);
-        database.insert(NoteTable.TABLE_NOTES, null, values);
+        contentResolver.insert(NotesContentProvider.CONTENT_URI, values);
 
         Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + uniqueId,
                 null, null, null, null);
@@ -56,7 +61,7 @@ public class NotesDataSource {
         values.put(NoteTable.COLUMN_NOTE, n.getNoteText());
         values.put(NoteTable.COLUMN_ID, id);
         values.put(NoteTable.COLUMN_IMPORTANT, n.getImportant());
-        database.insert(NoteTable.TABLE_NOTES, null, values);
+        contentResolver.insert(NotesContentProvider.CONTENT_URI, values);
 
         Cursor cursor = database.query(NoteTable.TABLE_NOTES, allColumns, NoteTable.COLUMN_ID + " = " + id,
                 null, null, null, null);
@@ -66,13 +71,27 @@ public class NotesDataSource {
         return note;
     }
 
+    public void editNote(long id, String description, boolean important) {
+        ContentValues values = new ContentValues();
+        values.put(NoteTable.COLUMN_NOTE, description);
+        values.put(NoteTable.COLUMN_IMPORTANT, important);
+        String where = NoteTable.COLUMN_ID + "=?";
+        String[] selectionArgs = {
+                Long.toString(id)
+        };
+        contentResolver.update(NotesContentProvider.CONTENT_URI, values, where, selectionArgs);
+    }
+
     public void deleteNote(Note note) {
-        long id = note.getId();
-        database.delete(NoteTable.TABLE_NOTES, NoteTable.COLUMN_ID + " = " + id, null);
+        String where = NoteTable.COLUMN_ID + "=?";
+        String[] selectionArgs = {
+                Long.toString(note.getId())
+        };
+        contentResolver.delete(NotesContentProvider.CONTENT_URI, where, selectionArgs);
     }
 
     public void deleteAllNotes() {
-        database.delete(NoteTable.TABLE_NOTES, null, null);
+        contentResolver.delete(NotesContentProvider.CONTENT_URI, null, null);
     }
 
     public List<Note> getAllNotes() {

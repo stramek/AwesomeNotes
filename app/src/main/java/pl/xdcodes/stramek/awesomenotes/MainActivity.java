@@ -33,16 +33,18 @@ import com.parse.ParseUser;
 import java.util.List;
 
 import pl.xdcodes.stramek.awesomenotes.adapters.Adapter;
+import pl.xdcodes.stramek.awesomenotes.adapters.ViewHolder;
 import pl.xdcodes.stramek.awesomenotes.database.NotesDataSource;
 import pl.xdcodes.stramek.awesomenotes.notes.Note;
 import pl.xdcodes.stramek.awesomenotes.parse.NoteParse;
 import pl.xdcodes.stramek.awesomenotes.parse.ParseDialog;
 
 public class MainActivity extends AppCompatActivity
-        implements Adapter.ViewHolder.ClickListener,
+        implements ViewHolder.ClickListener,
                    SwipeRefreshLayout.OnRefreshListener,
                    ParseDialog.StatusDialogListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "MainActivity";
 
     private Adapter adapter;
@@ -54,6 +56,9 @@ public class MainActivity extends AppCompatActivity
     private NotesDataSource dataSource;
 
     private ParseDialog dialog;
+
+    public static int ADD_NOTE = 1;
+    public static int EDIT_NOTE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +92,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, AddNote.class);
                 intent.setAction(Intent.ACTION_VIEW);
+                intent.putExtra("status", ADD_NOTE);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 startActivityForResult(intent, 1);
             }
@@ -144,6 +150,36 @@ public class MainActivity extends AppCompatActivity
                 }
                 recyclerView.smoothScrollToPosition(0);
             }
+        } else if (requestCode == 2) {
+            if(resultCode == Activity.RESULT_OK) {
+                dataSource.open();
+
+                final String resultNote = data.getStringExtra("note");
+                final boolean important = data.getBooleanExtra("important", false);
+                int position = data.getIntExtra("position", 0);
+                final long id = data.getLongExtra("id", 0);
+
+                dataSource.editNote(id, resultNote, important);
+                adapter.editNote(position, resultNote, important);
+
+                if(isOnline()) {
+                    ParseQuery<ParseObject> query = ParseQuery.getQuery("NoteParse");
+                    query.whereEqualTo("id", id);
+                    query.findInBackground(new FindCallback<ParseObject>() {
+                        @Override
+                        public void done(List<ParseObject> parseObjects, ParseException e) {
+                            if (e == null) {
+                                for (ParseObject edit : parseObjects) {
+                                    edit.put("noteText", resultNote);
+                                    edit.put("important", important);
+                                    edit.saveInBackground();
+                                }
+                            }
+                        }
+                    });
+                }
+                recyclerView.smoothScrollToPosition(0);
+            }
         }
     }
 
@@ -184,7 +220,7 @@ public class MainActivity extends AppCompatActivity
 
     private void toggleSelection(int position) {
         adapter.toggleSelection(position);
-        int count = adapter.getSelectedItemCount();
+        int count = Adapter.getSelectedItemCount();
 
         if (count == 0) {
             actionMode.finish();
@@ -279,7 +315,7 @@ public class MainActivity extends AppCompatActivity
                     List<Integer> items = adapter.getSelectedItems();
 
                     // TODO Znaleźć lepszy sposób na usuwanie kliku notek...
-                    List<Note> list = adapter.getNotes();
+                    List<Note> list = Adapter.getNotes();
 
                     int i = 0;
                     for (Note n : list) {
@@ -305,12 +341,12 @@ public class MainActivity extends AppCompatActivity
         }
 
         private void deleteNote(long id) {
-            ParseQuery<ParseObject> query=ParseQuery.getQuery("NoteParse");
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("NoteParse");
             query.whereEqualTo("id", id);
             query.findInBackground(new FindCallback<ParseObject>() {
                 @Override
                 public void done(List<ParseObject> parseObjects, ParseException e) {
-                    if(e == null) {
+                    if (e == null) {
                         for (ParseObject delete : parseObjects) {
                             delete.deleteInBackground();
                         }

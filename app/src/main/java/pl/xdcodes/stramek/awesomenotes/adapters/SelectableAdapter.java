@@ -15,7 +15,7 @@ public abstract class SelectableAdapter<VH extends RecyclerView.ViewHolder>
     @SuppressWarnings("unused")
     private final String TAG = SelectableAdapter.class.getSimpleName();
 
-    private SparseBooleanArray selectedItems;
+    private static SparseBooleanArray selectedItems; //TODO na 100% da się to zrobić ładniej bez statica...
 
     public SelectableAdapter() {
         selectedItems = new SparseBooleanArray();
@@ -42,7 +42,7 @@ public abstract class SelectableAdapter<VH extends RecyclerView.ViewHolder>
         }
     }
 
-    public int getSelectedItemCount() {
+    public static int getSelectedItemCount() {
         return selectedItems.size();
     }
 

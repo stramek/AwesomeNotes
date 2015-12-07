@@ -5,7 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 
-import pl.xdcodes.stramek.awesomenotes.AddNote;
+import pl.xdcodes.stramek.awesomenotes.AddEditNote;
 import pl.xdcodes.stramek.awesomenotes.Config;
 import pl.xdcodes.stramek.awesomenotes.MainActivity;
 import pl.xdcodes.stramek.awesomenotes.R;
@@ -15,9 +15,9 @@ public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickL
     @SuppressWarnings("unsused")
     private static final String TAG = "ViewHolder";
 
-    TextView noteText;
-    View selectedOverlay;
-    View important;
+    public TextView noteText;
+    public View selectedOverlay;
+    public View important;
 
     private ClickListener listener;
 
@@ -37,7 +37,7 @@ public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickL
     @Override
     public void onClick(View v) {
         if ((listener != null) && (SelectableAdapter.getSelectedItemCount() == 0)) {
-            Intent intent = new Intent(Config.context, AddNote.class);
+            Intent intent = new Intent(Config.context, AddEditNote.class);
             intent.setAction(Intent.ACTION_VIEW);
             intent.putExtra("status", MainActivity.EDIT_NOTE);
             intent.putExtra("position", getAdapterPosition());

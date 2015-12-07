@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AddNote.class);
+                Intent intent = new Intent(MainActivity.this, AddEditNote.class);
                 intent.setAction(Intent.ACTION_VIEW);
                 intent.putExtra("status", ADD_NOTE);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
@@ -119,66 +119,66 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
     }
 
+    public void addNote(String resultNote, boolean important) {
+        dataSource.open();
+        final Note n;
+
+        n = dataSource.createNote(resultNote, important);
+        adapter.addNote(n);
+
+        if(isOnline()) {
+            SharedPreferences prefs = this.getSharedPreferences("parse", Context.MODE_PRIVATE);
+            String email = prefs.getString("lastLogin", "");
+            String password = prefs.getString("lastPassword", "");
+
+            ParseUser.logInInBackground(email, password, new LogInCallback() {
+                public void done(ParseUser user, ParseException e) {
+                    if (user != null) {
+                        NoteParse np = new NoteParse(n);
+                        np.setACL(new ParseACL(ParseUser.getCurrentUser()));
+                        np.saveInBackground();
+                    }
+                }
+            });
+        }
+        recyclerView.smoothScrollToPosition(0);
+    }
+
+    public void editNote(long id, int position, final String resultNote, final boolean important) {
+        dataSource.open();
+        dataSource.editNote(id, resultNote, important);
+        adapter.editNote(position, resultNote, important);
+
+        if(isOnline()) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("NoteParse");
+            query.whereEqualTo("id", id);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> parseObjects, ParseException e) {
+                    if (e == null) {
+                        for (ParseObject edit : parseObjects) {
+                            edit.put("noteText", resultNote);
+                            edit.put("important", important);
+                            edit.saveInBackground();
+                        }
+                    }
+                }
+            });
+        }
+        recyclerView.smoothScrollToPosition(0);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode == 1) {
             if(resultCode == Activity.RESULT_OK) {
-                dataSource.open();
-                final Note n;
-
-                String resultNote = data.getStringExtra("note");
-                boolean important = data.getBooleanExtra("important", false);
-
-                n = dataSource.createNote(resultNote, important);
-                adapter.addNote(n);
-
-                if(isOnline()) {
-                    SharedPreferences prefs = this.getSharedPreferences("parse", Context.MODE_PRIVATE);
-                    String email = prefs.getString("lastLogin", "");
-                    String password = prefs.getString("lastPassword", "");
-
-                    ParseUser.logInInBackground(email, password, new LogInCallback() {
-                        public void done(ParseUser user, ParseException e) {
-                            if (user != null) {
-                                NoteParse np = new NoteParse(n);
-                                np.setACL(new ParseACL(ParseUser.getCurrentUser()));
-                                np.saveInBackground();
-                            }
-                        }
-                    });
-                }
-                recyclerView.smoothScrollToPosition(0);
+                addNote(data.getStringExtra("note"), data.getBooleanExtra("important", false));
             }
         } else if (requestCode == 2) {
             if(resultCode == Activity.RESULT_OK) {
-                dataSource.open();
-
-                final String resultNote = data.getStringExtra("note");
-                final boolean important = data.getBooleanExtra("important", false);
-                int position = data.getIntExtra("position", 0);
-                final long id = data.getLongExtra("id", 0);
-
-                dataSource.editNote(id, resultNote, important);
-                adapter.editNote(position, resultNote, important);
-
-                if(isOnline()) {
-                    ParseQuery<ParseObject> query = ParseQuery.getQuery("NoteParse");
-                    query.whereEqualTo("id", id);
-                    query.findInBackground(new FindCallback<ParseObject>() {
-                        @Override
-                        public void done(List<ParseObject> parseObjects, ParseException e) {
-                            if (e == null) {
-                                for (ParseObject edit : parseObjects) {
-                                    edit.put("noteText", resultNote);
-                                    edit.put("important", important);
-                                    edit.saveInBackground();
-                                }
-                            }
-                        }
-                    });
-                }
-                recyclerView.smoothScrollToPosition(0);
+                editNote(data.getLongExtra("id", 0), data.getIntExtra("position", 0),
+                         data.getStringExtra("note"), data.getBooleanExtra("important", false));
             }
         }
     }

@@ -15,9 +15,9 @@ import android.widget.EditText;
 
 import pl.xdcodes.stramek.awesomenotes.adapters.Adapter;
 
-public class AddNote extends AppCompatActivity {
+public class AddEditNote extends AppCompatActivity {
 
-    private static final String TAG = "AddNote";
+    private static final String TAG = "AddEditNote";
 
     private FloatingActionButton fab;
     private EditText noteText;
